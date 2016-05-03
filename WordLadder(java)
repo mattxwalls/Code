@@ -1,0 +1,99 @@
+package com.example.matt.hw6;
+
+import android.content.Context;
+import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.TextView;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class MainActivity extends AppCompatActivity {
+
+
+    HashSet<String> dictionary = new HashSet<>();
+    HashSet<String> words = new HashSet<>();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState){
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        readTextFile(this,R.raw.words);
+    }
+
+    public void readTextFile(Context ctx, int resId) {
+        InputStream inputStream = ctx.getResources().openRawResource(resId);
+        InputStreamReader inputreader = new InputStreamReader(inputStream);
+        BufferedReader bufferedreader = new BufferedReader(inputreader);
+        String line;
+        dictionary = new HashSet<>();
+
+        try {
+            while ((line = bufferedreader.readLine()) != null) {
+                dictionary.add(line);
+            }
+        }
+        catch (IOException e) {}
+
+    }
+    public void find(View view){
+        TextView textView = (TextView)findViewById(R.id.textView2);
+        EditText secText = (EditText) findViewById(R.id.editText);
+        EditText secText2 = (EditText) findViewById(R.id.editText2);
+        String word = secText.getText().toString();
+        String word2 = secText2.getText().toString();
+        String ladder = buildLadder(word,word2);
+        textView.setText(ladder);
+    }
+
+    public String buildLadder(String word, String word2) {
+        String result = "";
+        String alphabet = "abcdefghijklmnopqrstuvwxyz";
+        if (word.length() != word2.length())
+            result = "The words have to be the same length!";
+        else if (!dictionary.contains(word)||!dictionary.contains(word2))
+            result =  "One of the words used is not in the dictionary. Please choose another word.";
+        else {
+            Queue<ArrayList<String>> queue = new LinkedList<>();
+            ArrayList<String> firstword = new ArrayList<>();
+            firstword.add(word);
+            queue.add(firstword);
+
+            while (!queue.isEmpty()) {
+                ArrayList<String> ladder = queue.remove();
+
+                StringBuilder lword = new StringBuilder(ladder.get(ladder.size() - 1));   //last word in ladder
+                if (ladder.get(ladder.size() - 1).equals(word2))
+                    return ladder.toString();
+                for (int i = 0; i < word.length(); i++) {
+                    for (int j = 0; j < alphabet.length(); j++) {
+                        String tmp;
+                        tmp =  lword.substring(0,i) + alphabet.charAt(j)+ lword.substring(i+1);
+                        if (dictionary.contains(tmp) && !words.contains(tmp)) {
+                            ArrayList<String> newLadder = (ArrayList<String>) ladder.clone();
+                            newLadder.add(tmp);
+                            words.add(tmp); //add tmp to words
+                            queue.add(newLadder);
+
+
+                            if (ladder.get(ladder.size() - 1).equals(word2))
+                                return ladder.toString();
+                        }
+
+                    }
+                }
+            }
+        }
+        return result;
+    }
+}
+
